@@ -78,6 +78,7 @@
   (setq flood-flooded-cells (make-vector (* flood-rows flood-columns) nil))
   (aset flood-flooded-cells 0 t) ;; flood the first cell
   (flood-populate-board)
+  (flood-init-flooded-cells)
   (setq flood-moves 0)
   (flood-draw-board))
 
@@ -86,6 +87,10 @@
   (dotimes (row flood-rows)
     (dotimes (col flood-columns)
       (flood-set-cell row col (number-to-string (random 6))))))
+
+(defun flood-init-flooded-cells ()
+  "Initialize already flooded cells at beginning of the game."
+  (flood-try-to-flood-neighbors 0 0 (string-to-number (flood-get-cell 0 0))))
 
 (defun flood-set-cell (row col val)
   "Set the value in (ROW, COL) to VAL."

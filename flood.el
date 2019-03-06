@@ -86,11 +86,11 @@
   "Populate the board with random values."
   (dotimes (row flood-rows)
     (dotimes (col flood-columns)
-      (flood-set-cell row col (number-to-string (random 6))))))
+      (flood-set-cell row col (random 6)))))
 
 (defun flood-init-flooded-cells ()
   "Initialize already flooded cells at beginning of the game."
-  (flood-try-to-flood-neighbors 0 0 (string-to-number (flood-get-cell 0 0))))
+  (flood-try-to-flood-neighbors 0 0 (flood-get-cell 0 0)))
 
 (defun flood-set-cell (row col val)
   "Set the value in (ROW, COL) to VAL."
@@ -98,7 +98,7 @@
 
 (defun flood-get-face (value)
   "Get face for VALUE."
-  (intern (concat "flood-face-" value)))
+  (intern (concat "flood-face-" (number-to-string value))))
 
 (defun flood-get-index (row col)
   "Get the index in the board for (ROW, COL)."
@@ -167,28 +167,28 @@
   (progn
     (when (and (> col 0) ;; if cell on the left exists
                (not (flood-cell-flooded-p row (1- col))) ;; and it is not flooded
-               (string-equal (number-to-string color) (flood-get-cell row (1- col)))) ;; and is the same color
+               (eq color (flood-get-cell row (1- col)))) ;; and is the same color
       (progn
         (flood-do-flood-cell row (1- col)) ;; then flood it
         (flood-try-to-flood-neighbors row (1- col) color))) ;; and recursively try to flood neighbors
 
     (when (and (> flood-columns col) ;; if cell on the right exists
                (not (flood-cell-flooded-p row (1+ col))) ;; and it is not flooded
-               (string-equal (number-to-string color) (flood-get-cell row (1+ col)))) ;; and it is the same color
+               (eq color (flood-get-cell row (1+ col)))) ;; and it is the same color
       (progn
         (flood-do-flood-cell row (1+ col)) ;; then flood it
         (flood-try-to-flood-neighbors row (1+ col) color))) ;; and recursively try to flood neighbors
 
     (when (and (> row 0) ;; if cell above exists
                (not (flood-cell-flooded-p (1- row) col)) ;; and it is not flooded
-               (string-equal (number-to-string color) (flood-get-cell (1- row) col))) ;; and it is the same color
+               (eq color (flood-get-cell (1- row) col))) ;; and it is the same color
       (progn
         (flood-do-flood-cell (1- row) col) ;; then flood it
         (flood-try-to-flood-neighbors (1- row) col color))) ;; and recursively try to flood neighbors
 
     (when (and (> flood-rows row) ;; if cell below exists
                (not (flood-cell-flooded-p (1+ row) col)) ;; and it is not flooded
-               (string-equal (number-to-string color) (flood-get-cell (1+ row) col))) ;; and it is the same color
+               (eq color (flood-get-cell (1+ row) col))) ;; and it is the same color
       (progn
         (flood-do-flood-cell (1+ row) col) ;; then flood it
         (flood-try-to-flood-neighbors (1+ row) col color))))) ;; and recursively try to flood neighbors
@@ -203,7 +203,7 @@
   (dotimes (row flood-rows)
     (dotimes (col flood-columns)
       (when (flood-cell-flooded-p row col)
-        (flood-set-cell row col (number-to-string color)))))
+        (flood-set-cell row col color))))
 
   ;; try to flood neighbors of flooded cells
   (dotimes (row flood-rows)

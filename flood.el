@@ -32,7 +32,13 @@
 
 ;;; Code:
 
-(define-derived-mode flood-mode special-mode "flood-mode")
+(define-derived-mode flood-mode special-mode "flood-mode"
+  (define-key flood-mode-map (kbd "b") 'flood-change-0)
+  (define-key flood-mode-map (kbd "r") 'flood-change-1)
+  (define-key flood-mode-map (kbd "y") 'flood-change-2)
+  (define-key flood-mode-map (kbd "g") 'flood-change-3)
+  (define-key flood-mode-map (kbd "p") 'flood-change-4)
+  (define-key flood-mode-map (kbd "o") 'flood-change-5))
 
 ;;;###autoload
 (defun flood-game () "Start playing Flood."
@@ -41,14 +47,19 @@
        (flood-mode)
        (flood-init))
 
-(defface flood-face-0  '((t . (:background "blue" :foreground "white"))) "Face for the 0th color" :group 'flood-faces)
-(defface flood-face-1  '((t . (:background "red" :foreground "white"))) "Face for the 1st color" :group 'flood-faces)
-(defface flood-face-2  '((t . (:background "yellow" :foreground "black"))) "Face for the 2nd color" :group 'flood-faces)
-(defface flood-face-3 '((t . (:background "green" :foreground "black"))) "Face for the 3th color" :group 'flood-faces)
-(defface flood-face-4 '((t . (:background "purple" :foreground "white"))) "Face for the 4th color" :group 'flood-faces)
-(defface flood-face-5 '((t . (:background "orange" :foreground "black"))) "Face for the 5th color" :group 'flood-faces)
+(defface flood-face-0 '((t . (:background "blue" :foreground "blue"))) "Face for the 0th color" :group 'flood-faces)
+(defface flood-face-1 '((t . (:background "red" :foreground "red"))) "Face for the 1st color" :group 'flood-faces)
+(defface flood-face-2 '((t . (:background "yellow" :foreground "yellow"))) "Face for the 2nd color" :group 'flood-faces)
+(defface flood-face-3 '((t . (:background "green" :foreground "green"))) "Face for the 3th color" :group 'flood-faces)
+(defface flood-face-4 '((t . (:background "purple" :foreground "purple"))) "Face for the 4th color" :group 'flood-faces)
+(defface flood-face-5 '((t . (:background "orange" :foreground "orange"))) "Face for the 5th color" :group 'flood-faces)
 
-
+(defface flood-face-button-0 '((t . (:background "blue" :foreground "white" :weight bold))) "Face for the button of the 0th color" :group 'flood-faces)
+(defface flood-face-button-1 '((t . (:background "red" :foreground "white" :weight bold))) "Face for the button of the 1st color" :group 'flood-faces)
+(defface flood-face-button-2 '((t . (:background "yellow" :foreground "black" :weight bold))) "Face for the button of the 2nd color" :group 'flood-faces)
+(defface flood-face-button-3 '((t . (:background "green" :foreground "black" :weight bold))) "Face for the button of the 3th color" :group 'flood-faces)
+(defface flood-face-button-4 '((t . (:background "purple" :foreground "white" :weight bold))) "Face for the button of the 4th color" :group 'flood-faces)
+(defface flood-face-button-5 '((t . (:background "orange" :foreground "black" :weight bold))) "Face for the button of the 5th color" :group 'flood-faces)
 
 (defvar flood-board nil "The actual board.")
 (defvar flood-moves 0 "The number of moves performed by the player.")
@@ -56,7 +67,6 @@
 
 (defvar flood-rows 15 "Board height.")
 (defvar flood-columns 15 "Board width.")
-
 
 (defun flood-init ()
   "Initialize the board with random colors."
@@ -102,18 +112,40 @@
       (insert "|")
       ;; print the cells of each line
       (dotimes (col flood-columns)
-        (insert (propertize "  " 'face (flood-get-face (flood-get-cell row col)))))
+        (let* ((val (flood-get-cell row col)))
+          (insert (propertize (concat "  ") 'face (flood-get-face val) 'pointer 'finger))))
       (insert "|\n"))
     ;;print the separator at the bottom
     (insert "+")
     (dotimes (col flood-columns)
       (insert "--"))
-    (insert "+\n\n")))
+    (insert "+\n")
+    ;; (insert "\n")
+    ;; (insert "Click on a square on the board!\n\n")
 
-  (defun flood-get-cell (row col)
-    "Get the value in (ROW, COL)."
-    (elt flood-board (flood-get-index row col)))
+    (insert "controls:\n")
+    (insert (propertize " b " 'face 'flood-face-button-0) "\n")
+    (insert (propertize " r " 'face 'flood-face-button-1) "\n")
+    (insert (propertize " y " 'face 'flood-face-button-2) "\n")
+    (insert (propertize " g " 'face 'flood-face-button-3) "\n")
+    (insert (propertize " p " 'face 'flood-face-button-4) "\n")
+    (insert (propertize " o " 'face 'flood-face-button-5) "\n\n")))
 
-  (provide 'flood)
+(defun flood-get-cell (row col)
+  "Get the value in (ROW, COL)."
+  (elt flood-board (flood-get-index row col)))
+
+(defun flood-change-0 () "Call with parameter." (interactive) (flood-change 0))
+(defun flood-change-1 () "Call with parameter." (interactive) (flood-change 1))
+(defun flood-change-2 () "Call with parameter." (interactive) (flood-change 2))
+(defun flood-change-3 () "Call with parameter." (interactive) (flood-change 3))
+(defun flood-change-4 () "Call with parameter." (interactive) (flood-change 4))
+(defun flood-change-5 () "Call with parameter." (interactive) (flood-change 5))
+
+(defun flood-change (num)
+  "Play a move, changing the color of the first cell to NUM."
+  (message "change to %s!" (number-to-string num)))
+
+(provide 'flood)
 
 ;;; flood.el ends here

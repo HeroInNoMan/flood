@@ -48,6 +48,8 @@
        (text-scale-adjust 3)
        (flood-init))
 
+(require 'cl-lib)
+
 (defface flood-face-0 '((t . (:background "blue" :foreground "blue"))) "Face for the 0th color" :group 'flood-faces)
 (defface flood-face-1 '((t . (:background "red" :foreground "red"))) "Face for the 1st color" :group 'flood-faces)
 (defface flood-face-2 '((t . (:background "yellow" :foreground "yellow"))) "Face for the 2nd color" :group 'flood-faces)
@@ -63,28 +65,31 @@
 (defface flood-face-button-5 '((t . (:background "orange" :foreground "black" :weight bold))) "Face for the button of the 5th color" :group 'flood-faces)
 
 (defvar flood-board nil "The actual board.")
+(defvar flood-flooded-cells nil "A matrix with the already flooded cells.")
 (defvar flood-moves 0 "The number of moves performed by the player.")
-(defvar flood-max-moves 21 "The number of moves allowed before loosing the game.")
+(defvar flood-max-moves 22 "The number of moves allowed before loosing the game.")
 
-(defvar flood-rows 15 "Board height.")
-(defvar flood-columns 15 "Board width.")
+(defvar flood-rows 12 "Board height.")
+(defvar flood-columns 12 "Board width.")
 
 (defun flood-init ()
   "Initialize the board with random colors."
-  (setq flood-board (make-vector (* flood-rows flood-columns) "0"))
+  (setq flood-board (make-vector (* flood-rows flood-columns) nil))
+  (setq flood-flooded-cells (make-vector (* flood-rows flood-columns) nil))
+  (aset flood-flooded-cells 0 t) ;; flood the first cell
   (flood-populate-board)
   (setq flood-moves 0)
-  (setq flood-max-moves 21)
   (flood-draw-board))
 
 (defun flood-populate-board ()
   "Populate the board with random values."
-  (dotimes (num (* flood-rows flood-columns))
-    (flood-set-cell num (number-to-string (random 6)))))
+  (dotimes (row flood-rows)
+    (dotimes (col flood-columns)
+      (flood-set-cell row col (number-to-string (random 6))))))
 
-(defun flood-set-cell (index val)
-  "Set the value in INDEX to VAL."
-  (aset flood-board index val))
+(defun flood-set-cell (row col val)
+  "Set the value in (ROW, COL) to VAL."
+  (aset flood-board (flood-get-index row col) val))
 
 (defun flood-get-face (value)
   "Get face for VALUE."
@@ -93,6 +98,18 @@
 (defun flood-get-index (row col)
   "Get the index in the board for (ROW, COL)."
   (+ (* row flood-columns) col))
+
+(defun flood-cell-flooded-p (row col)
+  "Return t if cell (ROW, COL) is flooded, nil otherwise."
+  (when (and (>= row 0)
+             (< row flood-rows)
+             (>= col 0)
+             (< col flood-columns))
+    (elt flood-flooded-cells (flood-get-index row col))))
+
+(defun flood-do-flood-cell (row col)
+  "Mark the cell (ROW COL) as flooded."
+  (aset flood-flooded-cells (flood-get-index row col) t))
 
 (defun flood-draw-board ()
   "Draw the flood board."
@@ -109,17 +126,36 @@
           (insert (propertize (concat "  ") 'face (flood-get-face val) 'pointer 'finger))))
       (insert "\n"))
 
-    (insert "\n Controls:\n")
-    (insert (concat " " (propertize " b " 'face 'flood-face-button-0 'pointer 'finger)) "\n")
-    (insert (concat " " (propertize " r " 'face 'flood-face-button-1 'pointer 'finger)) "\n")
-    (insert (concat " " (propertize " y " 'face 'flood-face-button-2 'pointer 'finger)) "\n")
-    (insert (concat " " (propertize " g " 'face 'flood-face-button-3 'pointer 'finger)) "\n")
-    (insert (concat " " (propertize " p " 'face 'flood-face-button-4 'pointer 'finger)) "\n")
-    (insert (concat " " (propertize " o " 'face 'flood-face-button-5 'pointer 'finger)) "\n\n")))
+    ;; display number of moves
+    (insert (concat "\n Moves: " (number-to-string flood-moves) "/" (number-to-string flood-max-moves) "\n\n"))
+
+    ;; check if grid successful
+    (cond ((flood-finished-p)
+           (progn
+             (insert (concat " Congratulations,\n you won in " (number-to-string flood-moves) " moves!\n Now go back to work.\n"))
+             (when (y-or-n-p "Try again? ")
+               (flood-init))))
+          ((>= flood-moves flood-max-moves)
+           (progn
+             (insert " Alas, you lost.")
+             (when (y-or-n-p "Try again? ")
+               (flood-init))))
+          (t (progn
+               (insert " Controls:\n")
+               (insert (concat " " (propertize " b " 'face 'flood-face-button-0 'pointer 'finger)) "\n")
+               (insert (concat " " (propertize " r " 'face 'flood-face-button-1 'pointer 'finger)) "\n")
+               (insert (concat " " (propertize " y " 'face 'flood-face-button-2 'pointer 'finger)) "\n")
+               (insert (concat " " (propertize " g " 'face 'flood-face-button-3 'pointer 'finger)) "\n")
+               (insert (concat " " (propertize " p " 'face 'flood-face-button-4 'pointer 'finger)) "\n")
+               (insert (concat " " (propertize " o " 'face 'flood-face-button-5 'pointer 'finger)) "\n\n"))))))
 
 (defun flood-get-cell (row col)
   "Get the value in (ROW, COL)."
-  (elt flood-board (flood-get-index row col)))
+  (when (and (>= row 0)
+             (< row flood-rows)
+             (>= col 0)
+             (< col flood-columns))
+    (elt flood-board (flood-get-index row col))))
 
 (defun flood-change-0 () "Call with parameter." (interactive) (flood-change 0))
 (defun flood-change-1 () "Call with parameter." (interactive) (flood-change 1))
@@ -128,9 +164,60 @@
 (defun flood-change-4 () "Call with parameter." (interactive) (flood-change 4))
 (defun flood-change-5 () "Call with parameter." (interactive) (flood-change 5))
 
-(defun flood-change (num)
-  "Play a move, changing the color of the first cell to NUM."
-  (message "change to %s!" (number-to-string num)))
+(defun flood-try-to-flood-neighbors (row col color)
+  "Try to recursively propagate flood to cells adjacent to (ROW, COL) if they match COLOR."
+  (progn
+    (when (and (> col 0) ;; if cell on the left exists
+               (not (flood-cell-flooded-p row (1- col))) ;; and it is not flooded
+               (string-equal (number-to-string color) (flood-get-cell row (1- col)))) ;; and is the same color
+      (progn
+        (flood-do-flood-cell row (1- col)) ;; then flood it
+        (flood-try-to-flood-neighbors row (1- col) color))) ;; and recursively try to flood neighbors
+
+    (when (and (> flood-columns col) ;; if cell on the right exists
+               (not (flood-cell-flooded-p row (1+ col))) ;; and it is not flooded
+               (string-equal (number-to-string color) (flood-get-cell row (1+ col)))) ;; and it is the same color
+      (progn
+        (flood-do-flood-cell row (1+ col)) ;; then flood it
+        (flood-try-to-flood-neighbors row (1+ col) color))) ;; and recursively try to flood neighbors
+
+    (when (and (> row 0) ;; if cell above exists
+               (not (flood-cell-flooded-p (1- row) col)) ;; and it is not flooded
+               (string-equal (number-to-string color) (flood-get-cell (1- row) col))) ;; and it is the same color
+      (progn
+        (flood-do-flood-cell (1- row) col) ;; then flood it
+        (flood-try-to-flood-neighbors (1- row) col color))) ;; and recursively try to flood neighbors
+
+    (when (and (> flood-rows row) ;; if cell below exists
+               (not (flood-cell-flooded-p (1+ row) col)) ;; and it is not flooded
+               (string-equal (number-to-string color) (flood-get-cell (1+ row) col))) ;; and it is the same color
+      (progn
+        (flood-do-flood-cell (1+ row) col) ;; then flood it
+        (flood-try-to-flood-neighbors (1+ row) col color))))) ;; and recursively try to flood neighbors
+
+(defun flood-finished-p ()
+  "Return t if only one color left on the board, nil otherwise."
+  (not (cl-position nil flood-flooded-cells)))
+
+(defun flood-change (color)
+  "Play a move, changing the color of the first cell to COLOR."
+  ;; change color of already flooded cells.
+  (dotimes (row flood-rows)
+    (dotimes (col flood-columns)
+      (when (flood-cell-flooded-p row col)
+        (flood-set-cell row col (number-to-string color)))))
+
+  ;; try to flood neighbors of flooded cells
+  (dotimes (row flood-rows)
+    (dotimes (col flood-columns)
+      (when (flood-cell-flooded-p row col)
+        (flood-try-to-flood-neighbors row col color))))
+
+  ;; increment move count
+  (setq-local flood-moves (1+ flood-moves))
+
+  ;; redraw the board
+  (flood-draw-board))
 
 (provide 'flood)
 

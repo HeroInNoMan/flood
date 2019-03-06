@@ -64,16 +64,15 @@
 (defface flood-face-button-4 '((t . (:background "purple" :foreground "white" :weight bold))) "Face for the button of the 4th color" :group 'flood-faces)
 (defface flood-face-button-5 '((t . (:background "orange" :foreground "black" :weight bold))) "Face for the button of the 5th color" :group 'flood-faces)
 
-(defvar flood-board nil "The actual board.")
-(defvar flood-flooded-cells nil "A matrix with the already flooded cells.")
+(defvar flood-board nil "The matrix containing the values representing the colors.")
+(defvar flood-flooded-cells nil "A matrix representing which cells are already flooded.")
 (defvar flood-moves 0 "The number of moves performed by the player.")
-(defvar flood-max-moves 22 "The number of moves allowed before loosing the game.")
-
-(defvar flood-rows 12 "Board height.")
-(defvar flood-columns 12 "Board width.")
+(defvar flood-max-moves 22 "The number of moves allowed before losing the game.")
+(defvar flood-rows 12 "The board height.")
+(defvar flood-columns 12 "The board width.")
 
 (defun flood-init ()
-  "Initialize the board with random colors."
+  "Initialize the game."
   (setq flood-board (make-vector (* flood-rows flood-columns) nil))
   (setq flood-flooded-cells (make-vector (* flood-rows flood-columns) nil))
   (aset flood-flooded-cells 0 t) ;; flood the first cell
@@ -83,13 +82,13 @@
   (flood-draw-board))
 
 (defun flood-populate-board ()
-  "Populate the board with random values."
+  "Populate the board with random colors."
   (dotimes (row flood-rows)
     (dotimes (col flood-columns)
       (flood-set-cell row col (random 6)))))
 
 (defun flood-init-flooded-cells ()
-  "Initialize already flooded cells at beginning of the game."
+  "Initialize already flooded cells at the beginning of the game."
   (flood-try-to-flood-neighbors 0 0 (flood-get-cell 0 0)))
 
 (defun flood-set-cell (row col val)

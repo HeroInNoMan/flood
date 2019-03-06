@@ -127,7 +127,11 @@
       ;; print the cells of each line
       (dotimes (col flood-columns)
         (let* ((val (flood-get-cell row col)))
-          (insert (propertize (concat "  ") 'face (flood-get-face val) 'pointer 'finger))))
+          (insert-text-button "  "
+                              'action (lambda () (flood-change val))
+                              'face (flood-get-face val)
+                              'mouse nil
+                              'mouse-face nil)))
       (insert "\n"))
 
     ;; display number of moves
@@ -144,14 +148,7 @@
              (insert " Alas, you lost.")
              (when (y-or-n-p "Try again? ")
                (flood-init))))
-          (t (progn
-               (insert " Controls:\n")
-               (insert (concat " " (propertize " b " 'face 'flood-face-button-0 'pointer 'finger)) "\n")
-               (insert (concat " " (propertize " r " 'face 'flood-face-button-1 'pointer 'finger)) "\n")
-               (insert (concat " " (propertize " y " 'face 'flood-face-button-2 'pointer 'finger)) "\n")
-               (insert (concat " " (propertize " g " 'face 'flood-face-button-3 'pointer 'finger)) "\n")
-               (insert (concat " " (propertize " p " 'face 'flood-face-button-4 'pointer 'finger)) "\n")
-               (insert (concat " " (propertize " o " 'face 'flood-face-button-5 'pointer 'finger)) "\n\n"))))))
+          (t (insert " Click on a color\n to flood with it!\n")))))
 
 (defun flood-get-cell (row col)
   "Get the value in (ROW, COL)."

@@ -73,7 +73,7 @@
 
 (defun flood-set-cell (index val)
   "Set the value in INDEX to VAL."
-  (aset flood-board index (propertize val 'face (flood-get-face val))))
+  (aset flood-board index val))
 
 (defun flood-get-face (value)
   "Get face for VALUE."
@@ -87,32 +87,33 @@
   "Draw the flood board."
   (let ((inhibit-read-only t))
     (erase-buffer)
+    (text-scale-adjust 3)
 
     (insert "\n\n")
 
+    ;; print the separator on top
+    (insert "+")
+    (dotimes (col flood-columns)
+      (insert "--"))
+    (insert "+\n")
+
     ;; for each row
     (dotimes (row flood-rows)
-
-      ;; print the separator on top
-      (dotimes (col flood-columns)
-        (insert "+---"))
-      (insert "+\n")
-
+      (insert "|")
       ;; print the cells of each line
       (dotimes (col flood-columns)
-        (insert "| ")
-        (insert (flood-get-cell row col))
-        (insert " "))
+        (insert (propertize "  " 'face (flood-get-face (flood-get-cell row col)))))
       (insert "|\n"))
     ;;print the separator at the bottom
+    (insert "+")
     (dotimes (col flood-columns)
-      (insert "+---"))
+      (insert "--"))
     (insert "+\n\n")))
 
-(defun flood-get-cell (row col)
-  "Get the value in (ROW, COL)."
-  (elt flood-board (flood-get-index row col)))
+  (defun flood-get-cell (row col)
+    "Get the value in (ROW, COL)."
+    (elt flood-board (flood-get-index row col)))
 
-(provide 'flood)
+  (provide 'flood)
 
 ;;; flood.el ends here

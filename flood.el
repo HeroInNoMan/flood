@@ -45,6 +45,7 @@
        (interactive)
        (switch-to-buffer "flood")
        (flood-mode)
+       (text-scale-adjust 3)
        (flood-init))
 
 (defface flood-face-0 '((t . (:background "blue" :foreground "blue"))) "Face for the 0th color" :group 'flood-faces)
@@ -97,7 +98,6 @@
   "Draw the flood board."
   (let ((inhibit-read-only t))
     (erase-buffer)
-    (text-scale-adjust 3)
 
     (insert "\n\n")
 

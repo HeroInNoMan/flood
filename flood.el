@@ -98,38 +98,24 @@
   "Draw the flood board."
   (let ((inhibit-read-only t))
     (erase-buffer)
-
-    (insert "\n\n")
-
-    ;; print the separator on top
-    (insert "+")
-    (dotimes (col flood-columns)
-      (insert "--"))
-    (insert "+\n")
+    (insert "\n")
 
     ;; for each row
     (dotimes (row flood-rows)
-      (insert "|")
+      (insert " ")
       ;; print the cells of each line
       (dotimes (col flood-columns)
         (let* ((val (flood-get-cell row col)))
           (insert (propertize (concat "  ") 'face (flood-get-face val) 'pointer 'finger))))
-      (insert "|\n"))
-    ;;print the separator at the bottom
-    (insert "+")
-    (dotimes (col flood-columns)
-      (insert "--"))
-    (insert "+\n")
-    ;; (insert "\n")
-    ;; (insert "Click on a square on the board!\n\n")
+      (insert "\n"))
 
-    (insert "controls:\n")
-    (insert (propertize " b " 'face 'flood-face-button-0) "\n")
-    (insert (propertize " r " 'face 'flood-face-button-1) "\n")
-    (insert (propertize " y " 'face 'flood-face-button-2) "\n")
-    (insert (propertize " g " 'face 'flood-face-button-3) "\n")
-    (insert (propertize " p " 'face 'flood-face-button-4) "\n")
-    (insert (propertize " o " 'face 'flood-face-button-5) "\n\n")))
+    (insert "\n Controls:\n")
+    (insert (concat " " (propertize " b " 'face 'flood-face-button-0 'pointer 'finger)) "\n")
+    (insert (concat " " (propertize " r " 'face 'flood-face-button-1 'pointer 'finger)) "\n")
+    (insert (concat " " (propertize " y " 'face 'flood-face-button-2 'pointer 'finger)) "\n")
+    (insert (concat " " (propertize " g " 'face 'flood-face-button-3 'pointer 'finger)) "\n")
+    (insert (concat " " (propertize " p " 'face 'flood-face-button-4 'pointer 'finger)) "\n")
+    (insert (concat " " (propertize " o " 'face 'flood-face-button-5 'pointer 'finger)) "\n\n")))
 
 (defun flood-get-cell (row col)
   "Get the value in (ROW, COL)."

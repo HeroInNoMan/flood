@@ -54,7 +54,7 @@
 (defvar flood-moves 0 "The number of moves performed by the player.")
 (defvar flood-max-moves 21 "The number of moves allowed before loosing the game.")
 
-(defvar flood-rows 15 "Board hight.")
+(defvar flood-rows 15 "Board height.")
 (defvar flood-columns 15 "Board width.")
 
 

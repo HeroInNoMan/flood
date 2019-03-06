@@ -33,12 +33,12 @@
 ;;; Code:
 
 (define-derived-mode flood-mode special-mode "flood-mode"
-  (define-key flood-mode-map (kbd "b") 'flood-change-0)
-  (define-key flood-mode-map (kbd "r") 'flood-change-1)
-  (define-key flood-mode-map (kbd "y") 'flood-change-2)
-  (define-key flood-mode-map (kbd "g") 'flood-change-3)
-  (define-key flood-mode-map (kbd "p") 'flood-change-4)
-  (define-key flood-mode-map (kbd "o") 'flood-change-5))
+  (define-key flood-mode-map (kbd "b") '(lambda () "" (interactive) (flood-change 0)))
+  (define-key flood-mode-map (kbd "r") '(lambda () "" (interactive) (flood-change 1)))
+  (define-key flood-mode-map (kbd "y") '(lambda () "" (interactive) (flood-change 2)))
+  (define-key flood-mode-map (kbd "g") '(lambda () "" (interactive) (flood-change 3)))
+  (define-key flood-mode-map (kbd "p") '(lambda () "" (interactive) (flood-change 4)))
+  (define-key flood-mode-map (kbd "o") '(lambda () "" (interactive) (flood-change 5))))
 
 ;;;###autoload
 (defun flood-game () "Start playing Flood."
@@ -156,13 +156,6 @@
              (>= col 0)
              (< col flood-columns))
     (elt flood-board (flood-get-index row col))))
-
-(defun flood-change-0 () "Call with parameter." (interactive) (flood-change 0))
-(defun flood-change-1 () "Call with parameter." (interactive) (flood-change 1))
-(defun flood-change-2 () "Call with parameter." (interactive) (flood-change 2))
-(defun flood-change-3 () "Call with parameter." (interactive) (flood-change 3))
-(defun flood-change-4 () "Call with parameter." (interactive) (flood-change 4))
-(defun flood-change-5 () "Call with parameter." (interactive) (flood-change 5))
 
 (defun flood-try-to-flood-neighbors (row col color)
   "Try to recursively propagate flood to cells adjacent to (ROW, COL) if they match COLOR."

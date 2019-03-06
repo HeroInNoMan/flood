@@ -73,7 +73,11 @@
 
 (defun flood-set-cell (index val)
   "Set the value in INDEX to VAL."
-  (aset flood-board index (propertize val 'face 'flood-face-0)))
+  (aset flood-board index (propertize val 'face (flood-get-face val))))
+
+(defun flood-get-face (value)
+  "Get face for VALUE."
+  (intern (concat "flood-face-" value)))
 
 (defun flood-get-index (row col)
   "Get the index in the board for (ROW, COL)."

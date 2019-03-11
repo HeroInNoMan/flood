@@ -197,23 +197,24 @@
 
 (defun flood-change (color)
   "Play a move, changing the color of the first cell to COLOR."
-  ;; change color of already flooded cells.
-  (dotimes (row flood-rows)
-    (dotimes (col flood-columns)
-      (when (flood-cell-flooded-p row col)
-        (flood-set-cell row col color))))
+  (unless (eq color (flood-get-cell 0 0))
+    ;; change color of already flooded cells.
+    (dotimes (row flood-rows)
+      (dotimes (col flood-columns)
+        (when (flood-cell-flooded-p row col)
+          (flood-set-cell row col color))))
 
-  ;; try to flood neighbors of flooded cells
-  (dotimes (row flood-rows)
-    (dotimes (col flood-columns)
-      (when (flood-cell-flooded-p row col)
-        (flood-try-to-flood-neighbors row col color))))
+    ;; try to flood neighbors of flooded cells
+    (dotimes (row flood-rows)
+      (dotimes (col flood-columns)
+        (when (flood-cell-flooded-p row col)
+          (flood-try-to-flood-neighbors row col color))))
 
-  ;; increment move count
-  (setq-local flood-moves (1+ flood-moves))
+    ;; increment move count
+    (setq-local flood-moves (1+ flood-moves))
 
-  ;; redraw the board
-  (flood-draw-board))
+    ;; redraw the board
+    (flood-draw-board)))
 
 (provide 'flood)
 

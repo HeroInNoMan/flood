@@ -38,7 +38,9 @@
   (define-key flood-mode-map (kbd "y") '(lambda () "" (interactive) (flood-change 2)))
   (define-key flood-mode-map (kbd "g") '(lambda () "" (interactive) (flood-change 3)))
   (define-key flood-mode-map (kbd "p") '(lambda () "" (interactive) (flood-change 4)))
-  (define-key flood-mode-map (kbd "o") '(lambda () "" (interactive) (flood-change 5))))
+  (define-key flood-mode-map (kbd "o") '(lambda () "" (interactive) (flood-change 5)))
+  (define-key flood-mode-map (kbd "<SPC>") 'restart-game)
+  )
 
 ;;;###autoload
 (defun flood-game () "Start playing Flood."
@@ -63,9 +65,13 @@
 (defface flood-face-button-3 '((t . (:background "green" :foreground "black" :weight bold))) "Face for the button of the 3th color" :group 'flood-faces)
 (defface flood-face-button-4 '((t . (:background "purple" :foreground "white" :weight bold))) "Face for the button of the 4th color" :group 'flood-faces)
 (defface flood-face-button-5 '((t . (:background "orange" :foreground "black" :weight bold))) "Face for the button of the 5th color" :group 'flood-faces)
+(defface flood-face-button-undo '((t . (:background "white" :foreground "black" :weight bold))) "Face for the undo button" :group 'flood-faces)
 
 (defvar flood-board nil
   "The matrix containing the values representing the colors.")
+
+(defvar flood-board-backup nil
+  "The backup of the board, for undoing purposes.")
 
 (defvar flood-flooded-cells nil
   "A matrix representing which cells are already flooded.")
@@ -91,6 +97,7 @@
   (setq flood-flooded-cells (make-vector (* flood-rows flood-columns) nil))
   (aset flood-flooded-cells 0 t) ;; flood the first cell
   (flood-populate-board)
+  (setq flood-board-backup (copy-tree flood-board t))
   (flood-init-flooded-cells)
   (setq flood-moves 0)
   (setq flood-recorded-moves nil)
@@ -105,6 +112,17 @@
 (defun flood-init-flooded-cells ()
   "Initialize already flooded cells at the beginning of the game."
   (flood-try-to-flood-neighbors 0 0 (flood-get-cell 0 0)))
+
+(defun restart-game ()
+  "Restart current game."
+  (interactive)
+  (setq flood-flooded-cells (make-vector (* flood-rows flood-columns) nil))
+  (aset flood-flooded-cells 0 t) ;; flood the first cell
+  (setq flood-board (copy-tree flood-board-backup t))
+  (flood-init-flooded-cells)
+  (setq flood-moves 0)
+  (setq flood-recorded-moves nil)
+  (flood-draw-board))
 
 (defun flood-set-cell (row col val)
   "Set the value in (ROW, COL) to VAL."
@@ -178,12 +196,13 @@
                (flood-init))))
           (t (progn
                (insert "  Controls:\n")
-               (insert (concat "  " (propertize " b " 'face 'flood-face-button-0 'pointer 'finger)) "\n")
-               (insert (concat "  " (propertize " r " 'face 'flood-face-button-1 'pointer 'finger)) "\n")
-               (insert (concat "  " (propertize " y " 'face 'flood-face-button-2 'pointer 'finger)) "\n")
-               (insert (concat "  " (propertize " g " 'face 'flood-face-button-3 'pointer 'finger)) "\n")
-               (insert (concat "  " (propertize " p " 'face 'flood-face-button-4 'pointer 'finger)) "\n")
-               (insert (concat "  " (propertize " o " 'face 'flood-face-button-5 'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " b "     'face 'flood-face-button-0    'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " r "     'face 'flood-face-button-1    'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " y "     'face 'flood-face-button-2    'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " g "     'face 'flood-face-button-3    'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " p "     'face 'flood-face-button-4    'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " o "     'face 'flood-face-button-5    'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " <SPC> " 'face 'flood-face-button-undo 'pointer 'finger)) ": Restart game\n")
                (insert "\n  Or middle-click on a color to flood with it!"))))))
 
 (defun flood-get-cell (row col)

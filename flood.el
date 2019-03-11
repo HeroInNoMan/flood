@@ -163,34 +163,33 @@
 
 (defun flood-try-to-flood-neighbors (row col color)
   "Try to recursively propagate flood to cells adjacent to (ROW, COL) if they match COLOR."
-  (progn
-    (when (and (> col 0) ;; if cell on the left exists
-               (not (flood-cell-flooded-p row (1- col))) ;; and it is not flooded
-               (eq color (flood-get-cell row (1- col)))) ;; and is the same color
-      (progn
-        (flood-do-flood-cell row (1- col)) ;; then flood it
-        (flood-try-to-flood-neighbors row (1- col) color))) ;; and recursively try to flood neighbors
+  (when (and (> col 0) ;; if cell on the left exists
+             (not (flood-cell-flooded-p row (1- col))) ;; and it is not flooded
+             (eq color (flood-get-cell row (1- col)))) ;; and is the same color
+    (progn
+      (flood-do-flood-cell row (1- col)) ;; then flood it
+      (flood-try-to-flood-neighbors row (1- col) color))) ;; and recursively try to flood neighbors
 
-    (when (and (> flood-columns col) ;; if cell on the right exists
-               (not (flood-cell-flooded-p row (1+ col))) ;; and it is not flooded
-               (eq color (flood-get-cell row (1+ col)))) ;; and it is the same color
-      (progn
-        (flood-do-flood-cell row (1+ col)) ;; then flood it
-        (flood-try-to-flood-neighbors row (1+ col) color))) ;; and recursively try to flood neighbors
+  (when (and (> flood-columns col) ;; if cell on the right exists
+             (not (flood-cell-flooded-p row (1+ col))) ;; and it is not flooded
+             (eq color (flood-get-cell row (1+ col)))) ;; and it is the same color
+    (progn
+      (flood-do-flood-cell row (1+ col)) ;; then flood it
+      (flood-try-to-flood-neighbors row (1+ col) color))) ;; and recursively try to flood neighbors
 
-    (when (and (> row 0) ;; if cell above exists
-               (not (flood-cell-flooded-p (1- row) col)) ;; and it is not flooded
-               (eq color (flood-get-cell (1- row) col))) ;; and it is the same color
-      (progn
-        (flood-do-flood-cell (1- row) col) ;; then flood it
-        (flood-try-to-flood-neighbors (1- row) col color))) ;; and recursively try to flood neighbors
+  (when (and (> row 0) ;; if cell above exists
+             (not (flood-cell-flooded-p (1- row) col)) ;; and it is not flooded
+             (eq color (flood-get-cell (1- row) col))) ;; and it is the same color
+    (progn
+      (flood-do-flood-cell (1- row) col) ;; then flood it
+      (flood-try-to-flood-neighbors (1- row) col color))) ;; and recursively try to flood neighbors
 
-    (when (and (> flood-rows row) ;; if cell below exists
-               (not (flood-cell-flooded-p (1+ row) col)) ;; and it is not flooded
-               (eq color (flood-get-cell (1+ row) col))) ;; and it is the same color
-      (progn
-        (flood-do-flood-cell (1+ row) col) ;; then flood it
-        (flood-try-to-flood-neighbors (1+ row) col color))))) ;; and recursively try to flood neighbors
+  (when (and (> flood-rows row) ;; if cell below exists
+             (not (flood-cell-flooded-p (1+ row) col)) ;; and it is not flooded
+             (eq color (flood-get-cell (1+ row) col))) ;; and it is the same color
+    (progn
+      (flood-do-flood-cell (1+ row) col) ;; then flood it
+      (flood-try-to-flood-neighbors (1+ row) col color)))) ;; and recursively try to flood neighbors
 
 (defun flood-finished-p ()
   "Return t if only one color left on the board, nil otherwise."

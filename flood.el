@@ -82,6 +82,9 @@
 (defvar flood-columns 12
   "The board width.")
 
+(defvar flood-recorded-moves nil
+  "The list of moves performed in the current game.")
+
 (defun flood-init ()
   "Initialize the game."
   (setq flood-board (make-vector (* flood-rows flood-columns) nil))
@@ -90,6 +93,7 @@
   (flood-populate-board)
   (flood-init-flooded-cells)
   (setq flood-moves 0)
+  (setq flood-recorded-moves nil)
   (flood-draw-board))
 
 (defun flood-populate-board ()
@@ -230,6 +234,9 @@
 
     ;; increment move count
     (setq-local flood-moves (1+ flood-moves))
+
+    ;; record move
+    (push color flood-recorded-moves)
 
     ;; redraw the board
     (flood-draw-board)))

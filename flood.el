@@ -39,8 +39,10 @@
   (define-key flood-mode-map (kbd "g") '(lambda () "" (interactive) (flood-change 3)))
   (define-key flood-mode-map (kbd "p") '(lambda () "" (interactive) (flood-change 4)))
   (define-key flood-mode-map (kbd "o") '(lambda () "" (interactive) (flood-change 5)))
-  (define-key flood-mode-map (kbd "<SPC>") 'restart-game)
-  )
+  (define-key flood-mode-map (kbd "n") 'flood-init)
+  (define-key flood-mode-map (kbd "<SPC>") 'flood-restart-game)
+  (define-key flood-mode-map (kbd "+") 'flood-replay-move)
+  (define-key flood-mode-map (kbd "u") 'flood-undo-move))
 
 ;;;###autoload
 (defun flood-game () "Start playing Flood."
@@ -76,7 +78,7 @@
 (defvar flood-flooded-cells nil
   "A matrix representing which cells are already flooded.")
 
-(defvar flood-moves 0
+(defvar flood-move-count 0
   "The number of moves performed by the player.")
 
 (defvar flood-max-moves 20
@@ -93,14 +95,14 @@
 
 (defun flood-init ()
   "Initialize the game."
+  (interactive)
   (setq flood-board (make-vector (* flood-rows flood-columns) nil))
   (setq flood-flooded-cells (make-vector (* flood-rows flood-columns) nil))
-  (aset flood-flooded-cells 0 t) ;; flood the first cell
   (flood-populate-board)
-  (setq flood-board-backup (copy-tree flood-board t))
   (flood-init-flooded-cells)
-  (setq flood-moves 0)
-  (setq flood-recorded-moves nil)
+  (setq flood-board-backup (copy-tree flood-board t))
+  (setq flood-move-count 0)
+  (setq flood-recorded-moves (make-vector flood-max-moves nil))
   (flood-draw-board))
 
 (defun flood-populate-board ()
@@ -111,18 +113,41 @@
 
 (defun flood-init-flooded-cells ()
   "Initialize already flooded cells at the beginning of the game."
+  (aset flood-flooded-cells 0 t) ;; flood the first cell
   (flood-try-to-flood-neighbors 0 0 (flood-get-cell 0 0)))
 
-(defun restart-game ()
+(defun flood-restart-game ()
   "Restart current game."
   (interactive)
   (setq flood-flooded-cells (make-vector (* flood-rows flood-columns) nil))
-  (aset flood-flooded-cells 0 t) ;; flood the first cell
   (setq flood-board (copy-tree flood-board-backup t))
   (flood-init-flooded-cells)
-  (setq flood-moves 0)
-  (setq flood-recorded-moves nil)
+  (setq flood-move-count 0)
   (flood-draw-board))
+
+(defun flood-undo-move ()
+  "Undo previous move."
+  (interactive)
+  (let* ((nb-moves flood-move-count))
+    (flood-restart-game)
+    (dotimes (n nb-moves)
+      (flood-replay-move n))))
+
+(defun flood-replay-move (&optional n)
+  "Replay the Nth move."
+  (interactive)
+  (let* ((move (elt flood-recorded-moves n)))
+    ;; record the move in the right place
+    (when move
+      ))
+
+  ;; replay the move
+  (if (and n (> n 0))
+      (let* (color-to-replay)
+        (setq color-to-replay (elt flood-recorded-moves n))
+        (flood-change color-to-replay))
+    (when (> flood-move-count 1)
+      (flood-replay-move (1- flood-move-count)))))
 
 (defun flood-set-cell (row col val)
   "Set the value in (ROW, COL) to VAL."
@@ -181,25 +206,28 @@
       (insert "\n"))
 
     ;; display number of moves
-    (insert (concat "\n  Moves: " (number-to-string flood-moves) "/" (number-to-string flood-max-moves) "\n\n"))
+    (insert (concat "\n  Moves: " (number-to-string flood-move-count) "/" (number-to-string flood-max-moves) "\n\n"))
 
     ;; check if grid successful
     (cond ((flood-finished-p)
            (progn
-             (insert (concat "  Congratulations,\n you won in " (number-to-string flood-moves) " moves!\n Now go back to work.\n"))
+             (insert (concat "  Congratulations,\n you won in " (number-to-string flood-move-count) " moves!\n Now go back to work.\n"))
              (when (y-or-n-p "Try again? ")
                (flood-init))))
-          ((>= flood-moves flood-max-moves)
+          ((>= flood-move-count flood-max-moves)
            (progn
              (insert "  Alas, you lost.")
              (when (y-or-n-p "Try again? ")
                (flood-init))))
           (t (progn
                (insert "  Controls:\n")
-               (insert (concat "  " (propertize " b "     'face 'flood-face-button-0    'pointer 'finger)) "\n")
-               (insert (concat "  " (propertize " r "     'face 'flood-face-button-1    'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " b " 'face 'flood-face-button-0 'pointer 'finger) "\t"
+                               (propertize " u " 'face 'flood-face-button-undo 'pointer 'finger)) " undo\n")
+               (insert (concat "  " (propertize " r " 'face 'flood-face-button-1 'pointer 'finger)) "\t"
+                       (propertize " + " 'face 'flood-face-button-undo 'pointer 'finger) " redo\n")
                (insert (concat "  " (propertize " y "     'face 'flood-face-button-2    'pointer 'finger)) "\n")
-               (insert (concat "  " (propertize " g "     'face 'flood-face-button-3    'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " g " 'face 'flood-face-button-3 'pointer 'finger)) "\t"
+                       (propertize " <SPC> " 'face 'flood-face-button-undo 'pointer 'finger) " restart\n")
                (insert (concat "  " (propertize " p "     'face 'flood-face-button-4    'pointer 'finger)) "\n")
                (insert (concat "  " (propertize " o "     'face 'flood-face-button-5    'pointer 'finger)) "\n")
                (insert (concat "  " (propertize " <SPC> " 'face 'flood-face-button-undo 'pointer 'finger)) ": Restart game\n")
@@ -251,11 +279,11 @@
         (when (flood-cell-flooded-p row col)
           (flood-try-to-flood-neighbors row col color))))
 
-    ;; increment move count
-    (setq-local flood-moves (1+ flood-moves))
-
     ;; record move
-    (push color flood-recorded-moves)
+    (aset flood-recorded-moves flood-move-count color)
+
+    ;; increment move count
+    (setq-local flood-move-count (1+ flood-move-count))
 
     ;; redraw the board
     (flood-draw-board)))

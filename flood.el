@@ -99,6 +99,15 @@
   "Get face for VALUE."
   (intern (concat "flood-face-" (number-to-string value))))
 
+(defun get-color-name (value)
+  "Get the color name for VALUE."
+  (cond ((eq 0 value) "blue")
+        ((eq 1 value) "red")
+        ((eq 2 value) "yellow")
+        ((eq 3 value) "green")
+        ((eq 4 value) "purple")
+        ((eq 5 value) "orange")))
+
 (defun flood-get-index (row col)
   "Get the index in the board for (ROW, COL)."
   (+ (* row flood-columns) col))
@@ -123,32 +132,36 @@
 
     ;; for each row
     (dotimes (row flood-rows)
-      (insert " ")
+      (insert "  ")
       ;; print the cells of each line
       (dotimes (col flood-columns)
-        (let* ((val (flood-get-cell row col)))
-          (insert-text-button "  "
-                              'action (lambda () (flood-change val))
-                              'face (flood-get-face val)
-                              'mouse nil
-                              'mouse-face nil)))
+        (let* ((val (flood-get-cell row col))
+               (hover (concat "Flood with " (get-color-name val) "!")))
+          (insert-button "██"
+                         ;; 'mouse-action 'color-button-action
+                         ;; 'action #'(lambda (button) (message  "!!!"))
+                         'action (lambda (button) (flood-change val))
+                         'face (flood-get-face val)
+                         'help-echo hover
+                         'mouse t
+                         'mouse-face 'highlight)))
       (insert "\n"))
 
     ;; display number of moves
-    (insert (concat "\n Moves: " (number-to-string flood-moves) "/" (number-to-string flood-max-moves) "\n\n"))
+    (insert (concat "\n  Moves: " (number-to-string flood-moves) "/" (number-to-string flood-max-moves) "\n\n"))
 
     ;; check if grid successful
     (cond ((flood-finished-p)
            (progn
-             (insert (concat " Congratulations,\n you won in " (number-to-string flood-moves) " moves!\n Now go back to work.\n"))
+             (insert (concat "  Congratulations,\n you won in " (number-to-string flood-moves) " moves!\n Now go back to work.\n"))
              (when (y-or-n-p "Try again? ")
                (flood-init))))
           ((>= flood-moves flood-max-moves)
            (progn
-             (insert " Alas, you lost.")
+             (insert "  Alas, you lost.")
              (when (y-or-n-p "Try again? ")
                (flood-init))))
-          (t (insert " Click on a color\n to flood with it!\n")))))
+          (t (insert "  Click on a color\n  to flood with it!\n")))))
 
 (defun flood-get-cell (row col)
   "Get the value in (ROW, COL)."

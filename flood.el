@@ -45,7 +45,7 @@
        (interactive)
        (switch-to-buffer "flood")
        (flood-mode)
-       (text-scale-adjust 3)
+       (text-scale-adjust 1)
        (flood-init))
 
 (require 'cl-lib)
@@ -67,7 +67,7 @@
 (defvar flood-board nil "The matrix containing the values representing the colors.")
 (defvar flood-flooded-cells nil "A matrix representing which cells are already flooded.")
 (defvar flood-moves 0 "The number of moves performed by the player.")
-(defvar flood-max-moves 22 "The number of moves allowed before losing the game.")
+(defvar flood-max-moves 20 "The number of moves allowed before losing the game.")
 (defvar flood-rows 12 "The board height.")
 (defvar flood-columns 12 "The board width.")
 

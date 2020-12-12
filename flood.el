@@ -161,7 +161,15 @@
              (insert "  Alas, you lost.")
              (when (y-or-n-p "Try again? ")
                (flood-init))))
-          (t (insert "  Click on a color\n  to flood with it!\n")))))
+          (t (progn
+               (insert "  Controls:\n")
+               (insert (concat "  " (propertize " b " 'face 'flood-face-button-0 'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " r " 'face 'flood-face-button-1 'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " y " 'face 'flood-face-button-2 'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " g " 'face 'flood-face-button-3 'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " p " 'face 'flood-face-button-4 'pointer 'finger)) "\n")
+               (insert (concat "  " (propertize " o " 'face 'flood-face-button-5 'pointer 'finger)) "\n")
+               (insert "\n  Or middle-click on a color to flood with it!"))))))
 
 (defun flood-get-cell (row col)
   "Get the value in (ROW, COL)."

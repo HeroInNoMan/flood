@@ -64,12 +64,23 @@
 (defface flood-face-button-4 '((t . (:background "purple" :foreground "white" :weight bold))) "Face for the button of the 4th color" :group 'flood-faces)
 (defface flood-face-button-5 '((t . (:background "orange" :foreground "black" :weight bold))) "Face for the button of the 5th color" :group 'flood-faces)
 
-(defvar flood-board nil "The matrix containing the values representing the colors.")
-(defvar flood-flooded-cells nil "A matrix representing which cells are already flooded.")
-(defvar flood-moves 0 "The number of moves performed by the player.")
-(defvar flood-max-moves 20 "The number of moves allowed before losing the game.")
-(defvar flood-rows 12 "The board height.")
-(defvar flood-columns 12 "The board width.")
+(defvar flood-board nil
+  "The matrix containing the values representing the colors.")
+
+(defvar flood-flooded-cells nil
+  "A matrix representing which cells are already flooded.")
+
+(defvar flood-moves 0
+  "The number of moves performed by the player.")
+
+(defvar flood-max-moves 20
+  "The number of moves allowed before losing the game.")
+
+(defvar flood-rows 12
+  "The board height.")
+
+(defvar flood-columns 12
+  "The board width.")
 
 (defun flood-init ()
   "Initialize the game."

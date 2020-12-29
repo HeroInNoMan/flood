@@ -3,9 +3,9 @@
 ;; Author: Arthur Léothaud
 ;; Maintainer: Arthur Léothaud
 ;; Version: 0.0.1
-;; Package-Requires: (dependencies)
+;; Package-Requires: (cl-lib)
 ;; Homepage: homepage
-;; Keywords: game
+;; Keywords: game flood
 
 
 ;; This file is not part of GNU Emacs
@@ -36,6 +36,8 @@
 
 ;;; Code:
 
+(require 'cl-lib)
+
 (define-derived-mode flood-mode special-mode "flood-mode"
   (define-key flood-mode-map (kbd "b") '(lambda () "" (interactive) (flood-change 0)))
   (define-key flood-mode-map (kbd "r") '(lambda () "" (interactive) (flood-change 1)))
@@ -54,8 +56,6 @@
        (switch-to-buffer "*flood*")
        (flood-mode)
        (flood-init))
-
-(require 'cl-lib)
 
 (defface flood-face-0 '((t . (:background "blue" :foreground "blue"))) "Face for the 0th color" :group 'flood-faces)
 (defface flood-face-1 '((t . (:background "red" :foreground "red"))) "Face for the 1st color" :group 'flood-faces)
@@ -128,29 +128,29 @@
   (setq flood-move-count 0)
   (flood-draw-board))
 
-(defun flood-undo-move ()
-  "Undo previous move."
+(defun flood-undo-move (&optional n)
+  "Undo N previous move."
   (interactive)
-  (let* ((nb-moves flood-move-count))
+  (let* ((number (if (number-or-marker-p n) n 1))
+         (nb-moves (- (1+ flood-move-count) number)))
     (flood-restart-game)
-    (dotimes (n nb-moves)
-      (flood-replay-move n))))
+    (dotimes (i nb-moves)
+      (flood-replay-move i))))
 
 (defun flood-replay-move (&optional n)
   "Replay the Nth move."
   (interactive)
-  (let* ((move (elt flood-recorded-moves n)))
+  (let* ((number (if (number-or-marker-p n) n 1))
+         (move (elt flood-recorded-moves number)))
     ;; record the move in the right place
-    (when move
-      ))
 
-  ;; replay the move
-  (if (and n (> n 0))
-      (let* (color-to-replay)
-        (setq color-to-replay (elt flood-recorded-moves n))
-        (flood-change color-to-replay))
-    (when (> flood-move-count 1)
-      (flood-replay-move (1- flood-move-count)))))
+    ;; replay the move
+    (if (and number (> number 0))
+        (let* (color-to-replay)
+          (setq color-to-replay (elt flood-recorded-moves number))
+          (flood-change color-to-replay))
+      (when (> flood-move-count 1)
+        (flood-replay-move (1- flood-move-count))))))
 
 (defun flood-set-cell (row col val)
   "Set the value in (ROW, COL) to VAL."
@@ -197,15 +197,8 @@
       ;; print the cells of each line
       (dotimes (col flood-columns)
         (let* ((val (flood-get-cell row col))
-               (hover (concat "Flood with " (get-color-name val) "!")))
-          (insert-button "██"
-                         ;; 'mouse-action 'color-button-action
-                         ;; 'action #'(lambda (button) (message  "!!!"))
-                         'action (lambda (button) (flood-change val))
-                         'face (flood-get-face val)
-                         'help-echo hover
-                         'mouse t
-                         'mouse-face 'highlight)))
+               (face (flood-get-face val)))
+          (flood-insert-control-button "██" face 'flood-change val)))
       (insert "\n"))
 
     ;; display number of moves
@@ -223,18 +216,32 @@
              (when (y-or-n-p "Try again? ")
                (flood-init))))
           (t (progn
-               (insert "  Controls:\n")
-               (insert (concat "  " (propertize " b " 'face 'flood-face-button-0 'pointer 'finger) "\t"
-                               (propertize " u " 'face 'flood-face-button-undo 'pointer 'finger)) " undo\n")
-               (insert (concat "  " (propertize " r " 'face 'flood-face-button-1 'pointer 'finger)) "\t"
-                       (propertize " + " 'face 'flood-face-button-undo 'pointer 'finger) " redo\n")
-               (insert (concat "  " (propertize " y "     'face 'flood-face-button-2    'pointer 'finger)) "\n")
-               (insert (concat "  " (propertize " g " 'face 'flood-face-button-3 'pointer 'finger)) "\t"
-                       (propertize " <SPC> " 'face 'flood-face-button-undo 'pointer 'finger) " restart\n")
-               (insert (concat "  " (propertize " p "     'face 'flood-face-button-4    'pointer 'finger)) "\n")
-               (insert (concat "  " (propertize " o "     'face 'flood-face-button-5    'pointer 'finger)) "\n")
-               (insert (concat "  " (propertize " <SPC> " 'face 'flood-face-button-undo 'pointer 'finger)) ": Restart game\n")
-               (insert "\n  Or middle-click on a color to flood with it!"))))))
+               (insert "  Controls:\n  ")
+               (flood-insert-control-button " b " 'flood-face-button-0 'flood-change 0)
+               (flood-insert-control-button " r " 'flood-face-button-1 'flood-change 1)
+               (flood-insert-control-button " y " 'flood-face-button-2 'flood-change 2)
+               (flood-insert-control-button " g " 'flood-face-button-3 'flood-change 3)
+               (flood-insert-control-button " p " 'flood-face-button-4 'flood-change 4)
+               (flood-insert-control-button " o " 'flood-face-button-5 'flood-change 5)
+               (insert "\n\n  ")
+               (flood-insert-control-button " u " 'flood-face-button-undo 'flood-undo-move)
+               (insert " undo\t")
+               (flood-insert-control-button " + " 'flood-face-button-undo 'flood-replay-move)
+               (insert " redo\n\n  ")
+               (flood-insert-control-button " <SPC> " 'flood-face-button-undo 'flood-restart-game)
+               (insert " Restart game\n\n  Or click on a color to flood with it!"))))))
+
+(defun flood-insert-control-button (label face action &optional action-params)
+  "Insert button with LABEL, FACE and ACTION (with ACTION-PARAMS)."
+  (insert-button label
+                 'follow-link t
+                 'help-echo nil
+                 'face face
+                 'mouse-face face
+                 'action (lambda (button)
+                           (if action-params
+                               (funcall action action-params)
+                             (funcall action)))))
 
 (defun flood-get-cell (row col)
   "Get the value in (ROW, COL)."

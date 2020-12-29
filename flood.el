@@ -51,9 +51,8 @@
 ;;;###autoload
 (defun flood-game () "Start playing Flood."
        (interactive)
-       (switch-to-buffer "flood")
+       (switch-to-buffer "*flood*")
        (flood-mode)
-       (text-scale-adjust 1)
        (flood-init))
 
 (require 'cl-lib)

@@ -96,9 +96,12 @@
 (defvar flood-recorded-moves nil
   "The list of moves performed in the current game.")
 
-(defun flood-init ()
-  "Initialize the game."
+(defun flood-init (&optional size)
+  "Initialize the game with board of size SIZE."
   (interactive)
+  (when (number-or-marker-p size)
+    (progn (setq flood-rows size)
+           (setq flood-columns size)))
   (setq flood-board (make-vector (* flood-rows flood-columns) nil))
   (setq flood-flooded-cells (make-vector (* flood-rows flood-columns) nil))
   (flood-populate-board)
